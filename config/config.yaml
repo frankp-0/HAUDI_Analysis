@@ -1,0 +1,14 @@
+executor: slurm
+default-resources:
+  - slurm_account="rc_yunmli_pi"
+  - slurm_partition="general"
+  - mem_mb=1000
+  - runtime="10m"
+restart-times: 3
+latency-wait: 60
+jobs: 300
+keep-going: True
+rerun-incomplete: True
+printshellcmds: True
+apptainer-args: "--bind /work/appscr/r/frocko,/work/users/f/r/frocko,/nas/longleaf/home/frocko/.cache/R/renv"
+use-apptainer: True

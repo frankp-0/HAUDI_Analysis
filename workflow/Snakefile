@@ -1,0 +1,54 @@
+from snakemake.utils import min_version
+
+min_version("8.19.1")
+
+configfile: "config/config.yaml"
+
+links = {
+  "BMI": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/continuous-21001-both_sexes-irnt.tsv.bgz",
+  "CRP": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/biomarkers-30710-both_sexes-irnt.tsv.bgz",
+  "CKD": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/phecode-585.3-both_sexes.tsv.bgz",
+  "DBP": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/continuous-DBP-both_sexes-combined_medadj_irnt.tsv.bgz",
+  "PR": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/continuous-12338-both_sexes-irnt.tsv.bgz",
+  "QRS": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/continuous-12340-both_sexes-irnt.tsv.bgz",
+  "eGFR": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/continuous-eGFRcys-both_sexes-irnt.tsv.bgz",
+  "HbA1c": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/biomarkers-30750-both_sexes-irnt.tsv.bgz",
+  "HDL": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/biomarkers-30760-both_sexes-irnt.tsv.bgz",
+  "Height": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/continuous-50-both_sexes-irnt.tsv.bgz",
+  "Hypertension": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/phecode-401-both_sexes.tsv.bgz",
+  "LDL": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/continuous-LDLC-both_sexes-medadj_irnt.tsv.bgz",
+  "MCHC": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/continuous-30060-both_sexes-irnt.tsv.bgz",
+  "PLT": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/continuous-30080-both_sexes-irnt.tsv.bgz",
+  "SBP": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/continuous-SBP-both_sexes-combined_medadj_irnt.tsv.bgz",
+  "WBC": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/continuous-30000-both_sexes-irnt.tsv.bgz",
+  "T2D": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/phecode-250.2-both_sexes.tsv.bgz",
+  "TC": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/biomarkers-30690-both_sexes-irnt.tsv.bgz",
+  "TG": "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/biomarkers-30870-both_sexes-irnt.tsv.bgz",
+}
+
+
+PHENO = links.keys()
+CHROM = [i for i in range(1, 23)]
+PAGE_SUB = ["AA", "HCHS_SOL"]
+FOLD = [i for i in range(1, 6)]
+NSNP = [1000, 10000, 50000, 100000]
+GAMMA_HAUDI = [1, 2, 3, 4, 5]
+GAMMA_GAUDI = [0, 0.5, 1, 1.5, 2]
+
+include: "rules/ukb.smk"
+include: "rules/page.smk"
+include: "rules/flare.smk"
+include: "rules/fbm.smk"
+include: "rules/pgs.smk"
+
+rule all:
+  input:
+    expand("/work/users/f/r/frocko/HAUDI/PAGE_analysis/data/PAGE/pheno/adjusted/pheno_adj_{PAGE_SUB}.txt", PAGE_SUB=PAGE_SUB),
+    expand("/work/users/f/r/frocko/HAUDI/PAGE_analysis/data/PAGE/pheno/folds/fold{FOLD}_{PHENO}_{PAGE_SUB}.txt", FOLD=FOLD, PHENO=PHENO, PAGE_SUB=PAGE_SUB),
+    expand("/work/users/f/r/frocko/HAUDI/PAGE_analysis/data/fbm/{PAGE_SUB}/fbm/all_chrom_{PHENO}_lanc.rds", PHENO=PHENO, PAGE_SUB=PAGE_SUB),
+    expand("/work/users/f/r/frocko/HAUDI/PAGE_analysis/data/fbm/{PAGE_SUB}/fbm/all_chrom_{PHENO}_lanc.bk", PHENO=PHENO, PAGE_SUB=PAGE_SUB),
+    expand("/work/users/f/r/frocko/HAUDI/PAGE_analysis/data/fbm/{PAGE_SUB}/fbm/all_chrom_{PHENO}_lanc_info.txt", PHENO=PHENO, PAGE_SUB=PAGE_SUB),
+    expand("/work/users/f/r/frocko/HAUDI/PAGE_analysis/models/haudi/{PAGE_SUB}/model_{PHENO}_{FOLD}_{n_snps}_{GAMMA}.rds", PHENO=PHENO, PAGE_SUB=PAGE_SUB, FOLD=FOLD, n_snps=NSNP, GAMMA=GAMMA_HAUDI),
+    expand("/work/users/f/r/frocko/HAUDI/PAGE_analysis/models/lasso/{PAGE_SUB}/model_{PHENO}_{FOLD}_{n_snps}.rds", PHENO=PHENO, PAGE_SUB=PAGE_SUB, FOLD=FOLD, n_snps=NSNP),
+    expand("/work/users/f/r/frocko/HAUDI/PAGE_analysis/models/gaudi/AA/model_{PHENO}_{FOLD}_{n_snps}_{GAMMA}.rds", PHENO=PHENO, FOLD=FOLD, n_snps=1000, GAMMA=GAMMA_GAUDI)
+
