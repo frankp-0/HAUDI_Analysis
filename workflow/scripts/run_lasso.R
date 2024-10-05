@@ -46,7 +46,8 @@ time_run <- system.time({
     y = y,
     ind_train = ind_train,
     family = "gaussian",
-    snps = snps
+    snps = snps,
+    K = 5
   )
 })
 

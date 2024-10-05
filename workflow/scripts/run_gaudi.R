@@ -48,7 +48,8 @@ time_run <- system.time({
     y = y,
     gamma = opt$gamma,
     ind_train = ind_train,
-    snps = snps
+    snps = snps,
+    k = 5
   )
 })
 
